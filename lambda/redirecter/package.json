@@ -1,0 +1,11 @@
+{
+  "name": "redirecter",
+  "version": "1.0.0",
+  "description": "A Lambda short-url lookup and redirect function",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Burton Rheutan",
+  "license": "ISC"
+}
