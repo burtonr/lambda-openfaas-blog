@@ -23,6 +23,12 @@ In order for these functions to work properly, the following steps must be compl
     - Secondary index: `originalUrl-index`
         - Partition key: `originalUrl`
 - Create IAM policy to access DynamoDB (see below)
+- Create IAM role with the created policy
+    - Role name: `lambda-short-url`
+- Zip both functions
+    - `zip -r <function name>.zip .`
+- Use the AWS CLI to upload/publish the function(s)
+    - `aws lambda create-function --function-name <function name> --zip-file fileb://<function name>.zip --handler index.handler --runtime nodejs10.x --timeout 30 --memory-size 1024 --role arn:aws:iam::<account number>:role/lambda-short-url`
 
 
 IAM Policy for DynamoDB
