@@ -1,6 +1,5 @@
 const AWS = require('aws-sdk');
 
-const originalUrl = "https://something.com/a-really-cool-site-to-share/old";
 const shortDomain = 'https://checkthisnow.net/'
 const tableName = "short-urls";
 const indexName = "originalUrl-index";
@@ -11,10 +10,18 @@ exports.handler = function (event, context, callback) {
 
     checkExists(originalUrl, function (exist) {
         if (!exist) {
-            createAndStorePath();
+            createAndStorePath(originalUrl, callback);
         } else {
-            let shortenedURL = shortDomain + exist.shortUrl;
-            callback(null, { status: 204, url: shortenedURL });
+            let shortenedURL = shortDomain + exist.token;
+            let response = {
+                isBase64Encoded: false,
+                statusCode: 200,
+                headers: {},
+                body: JSON.stringify({
+                    url: shortenedURL
+                })
+            };
+            callback(null, response);
         }
     });
 }
@@ -38,19 +45,38 @@ function checkExists(url, callback) {
     });
 }
 
-function createAndStorePath() {
+function createAndStorePath(originalUrl, callback) {
+    let response = {
+        isBase64Encoded: false,
+        statusCode: 201,
+        headers: {},
+        body: "{}"
+    };
+
     let path = generateToken();
     if (path == '') {
-        callback(new Error("Error generating short path"));
-        return;
+        response.statusCode = 500;
+        response.body = JSON.stringify({
+            url: "",
+            error: "Error generating short path"
+        });
+        callback(new Error("Error generating short path"), response);
     }
 
     let shortenedURL = shortDomain + path;
     storeURL(path, originalUrl, function (err) {
         if (err) {
-            callback(new Error("Error storing new short url: ", err));
+            response.statusCode = 500;
+            response.body = JSON.stringify({
+                url: "",
+                error: err
+            });
+            callback(new Error("Error storing new short url: ", response));
         } else {
-            callback(null, { status: 204, url: shortenedURL });
+            response.body = JSON.stringify({
+                url: shortenedURL
+            });
+            callback(null, response);
         }
     });
 }
@@ -67,12 +93,12 @@ function generateToken(path = '') {
     return generateToken(path + character)
 }
 
-function storeURL(shortUrl, longUrl, callback) {
+function storeURL(token, originalUrl, callback) {
     let params = {
         TableName: tableName,
         Item: {
-            "shortUrl": shortUrl,
-            "originalUrl": longUrl,
+            "token": token,
+            "originalUrl": originalUrl,
             "visits": 0
         }
     };
