@@ -29,6 +29,32 @@ In order for these functions to work properly, the following steps must be compl
     - `zip -r <function name>.zip .`
 - Use the AWS CLI to upload/publish the function(s)
     - `aws lambda create-function --function-name <function name> --zip-file fileb://<function name>.zip --handler index.handler --runtime nodejs10.x --timeout 30 --memory-size 1024 --role arn:aws:iam::<account number>:role/lambda-short-url`
+- Create API Gateway to invoke the function
+- Create method "POST" for `shortener` function
+    - Select "Integration type" as "Lambda Function"
+    - Check the box for "Use Lambda Proxy integration"
+    - Select the appropriate region
+    - Enter the function name
+    - Leave the "Use Default Timeout" box checked
+- "Create Resource" for `redirecter` function
+    - Enter `token` as the "Resource Name"
+    - Use `{token}` as the "Resource Path"
+    - Create method "GET" for resource
+        - In the `Method Request`, select "Request Paths"
+            - Enter `token` in the "Name" field
+        - In the `Integration Request`, select "Mapping Templates"
+            - Enter `application/json` in the "Content-Type"
+            - Copy the following into the template: `{ "token": "$input.params('token')" }`
+            - This will map the `token` path parameter to the `event.token` variable inside the Lambda function
+        - In the `Method Response`, delete the `200` status (added by default). Click "Add Response", enter `301` for the status code
+            - In the "Response Headers", enter `Location` in the "Name" field
+        - In the `Integration Response`, delete the `200` status (added by default). 
+            - Click the "Add integration response", select `301` for the "Method response status"
+            - Select "Header Mappings"
+                - Enter `Location` as the "Response Header"
+                - Enter `integration.response.body.destinationUrl` for the "Mapping value"
+                - This will take the response body `destinationUrl` value and return it as the `Location` header from the API Gateway
+
 
 
 IAM Policy for DynamoDB
