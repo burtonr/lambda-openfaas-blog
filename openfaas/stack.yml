@@ -1,0 +1,19 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  shortener:
+    lang: node10-express
+    handler: ./shortener
+    image: shortener:latest
+    secrets:
+      - shorturl-dynamo-key
+      - shorturl-dynamo-secret
+  redirecter:
+    lang: node10-express
+    handler: ./redirecter
+    image: redirecter:latest
+    secrets:
+      - shorturl-dynamo-key
+      - shorturl-dynamo-secret

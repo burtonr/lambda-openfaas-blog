@@ -3,7 +3,7 @@ provider:
   name: openfaas
   gateway: http://127.0.0.1:8080
 functions:
-  shortener:
+  redirecter:
     lang: node10-express
-    handler: ./shortener
-    image: shortener:latest
+    handler: ./redirecter
+    image: redirecter:latest
